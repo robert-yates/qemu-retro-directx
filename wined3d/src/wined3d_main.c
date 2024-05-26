@@ -480,7 +480,7 @@ static struct wined3d_output * wined3d_get_output_from_window(const struct wined
     TRACE("wined3d %p, hwnd %p.\n", wined3d, hwnd);
 
     monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-    monitor_info.cbSize = sizeof(monitor_info);
+    STRUCTURE_ACCESS_1(monitor_info, s1, cbSize) = sizeof(monitor_info);
     if (!GetMonitorInfoW(monitor, (MONITORINFO *)&monitor_info))
     {
         ERR("GetMonitorInfoW failed, error %#x.\n", GetLastError());

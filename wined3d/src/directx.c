@@ -89,7 +89,7 @@ HRESULT CDECL wined3d_output_take_ownership(const struct wined3d_output *output,
     switch (status)
     {
         case STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE:
-            return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+            return 0x887A0022L; // DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
         case STATUS_INVALID_PARAMETER:
             return E_INVALIDARG;
         case STATUS_PROCEDURE_NOT_FOUND:
@@ -128,7 +128,7 @@ static HRESULT wined3d_output_init(struct wined3d_output *output, unsigned int o
     if (D3DKMTOpenAdapterFromGdiDisplayName(&open_adapter_desc))
         return E_INVALIDARG;
 
-    create_device_desc.u.hAdapter = open_adapter_desc.hAdapter;
+    STRUCTURE_ACCESS_1_STABLE(create_device_desc, u1, hAdapter) = open_adapter_desc.hAdapter;
     if (D3DKMTCreateDevice(&create_device_desc))
     {
         close_adapter_desc.hAdapter = open_adapter_desc.hAdapter;
@@ -998,12 +998,12 @@ static BOOL CALLBACK enum_monitor_proc(HMONITOR monitor, HDC hdc, RECT *rect, LP
     struct wined3d_output_desc *desc = (struct wined3d_output_desc *)lparam;
     MONITORINFOEXW monitor_info;
 
-    monitor_info.cbSize = sizeof(monitor_info);
+    STRUCTURE_ACCESS_1(monitor_info, s1, cbSize) = sizeof(monitor_info);
     if (GetMonitorInfoW(monitor, (MONITORINFO *)&monitor_info) &&
             !lstrcmpiW(desc->device_name, monitor_info.szDevice))
     {
         desc->monitor = monitor;
-        desc->desktop_rect = monitor_info.rcMonitor;
+        desc->desktop_rect = STRUCTURE_ACCESS_1(monitor_info, s1, rcMonitor);
         desc->attached_to_desktop = TRUE;
         return FALSE;
     }
@@ -1052,11 +1052,11 @@ unsigned int CDECL wined3d_output_get_mode_count(const struct wined3d_output *ou
         if (mode.dmFields & DM_DISPLAYFLAGS)
         {
             if (scanline_ordering == WINED3D_SCANLINE_ORDERING_PROGRESSIVE
-                    && (mode.u2.dmDisplayFlags & DM_INTERLACED))
+                    && (STRUCTURE_ACCESS_1(mode, u2, dmDisplayFlags) & DM_INTERLACED))
                 continue;
 
             if (scanline_ordering == WINED3D_SCANLINE_ORDERING_INTERLACED
-                    && !(mode.u2.dmDisplayFlags & DM_INTERLACED))
+                    && !(STRUCTURE_ACCESS_1(mode, u2, dmDisplayFlags) & DM_INTERLACED))
                 continue;
         }
 
@@ -1112,11 +1112,11 @@ HRESULT CDECL wined3d_output_get_mode(const struct wined3d_output *output,
         if (m.dmFields & DM_DISPLAYFLAGS)
         {
             if (scanline_ordering == WINED3D_SCANLINE_ORDERING_PROGRESSIVE
-                    && (m.u2.dmDisplayFlags & DM_INTERLACED))
+                    && (STRUCTURE_ACCESS_1(m, u2, dmDisplayFlags) & DM_INTERLACED))
                 continue;
 
             if (scanline_ordering == WINED3D_SCANLINE_ORDERING_INTERLACED
-                    && !(m.u2.dmDisplayFlags & DM_INTERLACED))
+                    && !(STRUCTURE_ACCESS_1(m, u2, dmDisplayFlags) & DM_INTERLACED))
                 continue;
         }
 
@@ -1144,7 +1144,7 @@ HRESULT CDECL wined3d_output_get_mode(const struct wined3d_output *output,
 
     if (!(m.dmFields & DM_DISPLAYFLAGS))
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_UNKNOWN;
-    else if (m.u2.dmDisplayFlags & DM_INTERLACED)
+    else if (STRUCTURE_ACCESS_1(m, u2, dmDisplayFlags) & DM_INTERLACED)
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_INTERLACED;
     else
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_PROGRESSIVE;
@@ -1296,32 +1296,36 @@ HRESULT CDECL wined3d_output_get_display_mode(const struct wined3d_output *outpu
 
     if (!(m.dmFields & DM_DISPLAYFLAGS))
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_UNKNOWN;
-    else if (m.u2.dmDisplayFlags & DM_INTERLACED)
+    else if (STRUCTURE_ACCESS_1(m, u2, dmDisplayFlags) & DM_INTERLACED)
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_INTERLACED;
     else
         mode->scanline_ordering = WINED3D_SCANLINE_ORDERING_PROGRESSIVE;
 
     if (rotation)
     {
-        switch (m.u1.s2.dmDisplayOrientation)
-        {
-            case DMDO_DEFAULT:
-                *rotation = WINED3D_DISPLAY_ROTATION_0;
-                break;
-            case DMDO_90:
-                *rotation = WINED3D_DISPLAY_ROTATION_90;
-                break;
-            case DMDO_180:
-                *rotation = WINED3D_DISPLAY_ROTATION_180;
-                break;
-            case DMDO_270:
-                *rotation = WINED3D_DISPLAY_ROTATION_270;
-                break;
-            default:
-                FIXME("Unhandled display rotation %#x.\n", m.u1.s2.dmDisplayOrientation);
-                *rotation = WINED3D_DISPLAY_ROTATION_UNSPECIFIED;
-                break;
-        }
+        #if _WIN32_WINNT < 0xA00
+            *rotation = WINED3D_DISPLAY_ROTATION_0;
+        #else
+            switch (STRUCTURE_ACCESS_2(m, u1, s2, dmDisplayOrientation))
+            {
+                case DMDO_DEFAULT:
+                    *rotation = WINED3D_DISPLAY_ROTATION_0;
+                    break;
+                case DMDO_90:
+                    *rotation = WINED3D_DISPLAY_ROTATION_90;
+                    break;
+                case DMDO_180:
+                    *rotation = WINED3D_DISPLAY_ROTATION_180;
+                    break;
+                case DMDO_270:
+                    *rotation = WINED3D_DISPLAY_ROTATION_270;
+                    break;
+                default:
+                    FIXME("Unhandled display rotation %#x.\n", m.u1.s2.dmDisplayOrientation);
+                    *rotation = WINED3D_DISPLAY_ROTATION_UNSPECIFIED;
+                    break;
+                }
+        #endif
     }
 
     TRACE("Returning %ux%u@%u %s %#x.\n", mode->width, mode->height,
@@ -1345,7 +1349,7 @@ static BOOL equal_display_mode(const DEVMODEW *mode1, const DEVMODEW *mode2)
         return FALSE;
 
     if (mode1->dmFields & mode2->dmFields & DM_DISPLAYFLAGS
-            && mode1->u2.dmDisplayFlags != mode2->u2.dmDisplayFlags)
+            && STRUCTURE_ACCESS_1P(mode1, u2, dmDisplayFlags) != STRUCTURE_ACCESS_1P(mode2, u2, dmDisplayFlags))
         return FALSE;
 
     if (mode1->dmFields & mode2->dmFields & DM_DISPLAYFREQUENCY
@@ -1353,12 +1357,12 @@ static BOOL equal_display_mode(const DEVMODEW *mode1, const DEVMODEW *mode2)
         return FALSE;
 
     if (mode1->dmFields & mode2->dmFields & DM_DISPLAYORIENTATION
-            && mode1->u1.s2.dmDisplayOrientation != mode2->u1.s2.dmDisplayOrientation)
+            && STRUCTURE_ACCESS_2P(mode1, u1, s2, dmDisplayOrientation) != STRUCTURE_ACCESS_2P(mode2, u1, s2, dmDisplayOrientation))
         return FALSE;
 
     if (mode1->dmFields & mode2->dmFields & DM_POSITION
-            && (mode1->u1.s2.dmPosition.x != mode2->u1.s2.dmPosition.x
-            || mode1->u1.s2.dmPosition.y != mode2->u1.s2.dmPosition.y))
+            && (STRUCTURE_ACCESS_2P(mode1, u1, s2, dmPosition).x != STRUCTURE_ACCESS_2P(mode2, u1, s2, dmPosition).x
+            || STRUCTURE_ACCESS_2P(mode1, u1, s2, dmPosition).y != STRUCTURE_ACCESS_2P(mode2, u1, s2, dmPosition).y))
         return FALSE;
 
     return TRUE;
@@ -1469,7 +1473,7 @@ HRESULT CDECL wined3d_output_set_display_mode(struct wined3d_output *output,
     {
         new_mode.dmFields |= DM_DISPLAYFLAGS;
         if (mode->scanline_ordering == WINED3D_SCANLINE_ORDERING_INTERLACED)
-            new_mode.u2.dmDisplayFlags |= DM_INTERLACED;
+            STRUCTURE_ACCESS_1(new_mode, u2, dmDisplayFlags) |= DM_INTERLACED;
     }
     new_format_id = mode->format_id;
 
