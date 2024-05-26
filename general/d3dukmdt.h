@@ -19,11 +19,15 @@
 #ifndef __WINE_D3DUKMDT_H
 #define __WINE_D3DUKMDT_H
 
-#ifndef MAKEFOURCC
-#define MAKEFOURCC(ch0, ch1, ch2, ch3) \
-        ((DWORD)(BYTE)(ch0) | ((DWORD)(BYTE)(ch1) << 8) | \
-        ((DWORD)(BYTE)(ch2) << 16) | ((DWORD)(BYTE)(ch3) << 24))
-#endif /* MAKEFOURCC */
+#ifdef _MSC_VER
+    #include "mmsystem.h"
+#else
+    #ifndef MAKEFOURCC
+    #define MAKEFOURCC(ch0, ch1, ch2, ch3) \
+            ((DWORD)(BYTE)(ch0) | ((DWORD)(BYTE)(ch1) << 8) | \
+            ((DWORD)(BYTE)(ch2) << 16) | ((DWORD)(BYTE)(ch3) << 24))
+    #endif
+#endif
 
 typedef UINT D3DKMT_HANDLE;
 
