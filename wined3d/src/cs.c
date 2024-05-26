@@ -3485,8 +3485,7 @@ struct wined3d_cs *wined3d_cs_create(struct wined3d_device *device,
     if (!(cs->data = heap_alloc(cs->data_size)))
         goto fail;
 
-    if (wined3d_settings.cs_multithreaded & WINED3D_CSMT_ENABLE
-            && !RtlIsCriticalSectionLockedByThread(NtCurrentTeb()->Peb->LoaderLock))
+    if (wined3d_settings.cs_multithreaded & WINED3D_CSMT_ENABLE)
     {
         cs->c.ops = &wined3d_cs_mt_ops;
 
