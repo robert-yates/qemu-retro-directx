@@ -55,8 +55,15 @@ struct __wine_debug_channel
     char name[15];
 };
 
+#define WINE_NO_TRACE_MSGS
+#define WINE_NO_DEBUG_MSGS
+
 #ifndef WINE_NO_TRACE_MSGS
+#ifndef WINE_ALWAYS_DEBUG
 # define __WINE_GET_DEBUGGING_TRACE(dbch) ((dbch)->flags & (1 << __WINE_DBCL_TRACE))
+#else
+# define __WINE_GET_DEBUGGING_TRACE(dbch) 1
+#endif
 #else
 # define __WINE_GET_DEBUGGING_TRACE(dbch) 0
 #endif
@@ -144,11 +151,14 @@ struct __wine_debug_channel
 #endif  /* !__GNUC__ && !__SUNPRO_C */
 
 extern int WINAPI __wine_dbg_write( const char *str, unsigned int len );
-extern unsigned char __cdecl __wine_dbg_get_channel_flags( struct __wine_debug_channel *channel );
+#define __wine_dbg_get_channel_flags(x) 0
+//extern unsigned char __cdecl __wine_dbg_get_channel_flags( struct __wine_debug_channel *channel );
 extern const char * __cdecl __wine_dbg_strdup( const char *str );
-extern int __cdecl __wine_dbg_output( const char *str );
-extern int __cdecl __wine_dbg_header( enum __wine_debug_class cls, struct __wine_debug_channel *channel,
-                                      const char *function );
+#define __wine_dbg_output 0;
+#define __wine_dbg_header(...) 0
+#define __wine_dbg_strdup(str) strdup(str)
+//extern int __cdecl __wine_dbg_output( const char *str );
+//extern int __cdecl __wine_dbg_header( enum __wine_debug_class cls, struct __wine_debug_channel *channel, const char *function );
 
 /*
  * Exported definitions and macros
@@ -158,11 +168,7 @@ extern int __cdecl __wine_dbg_header( enum __wine_debug_class cls, struct __wine
    quotes.  The string will be valid for some time, but not indefinitely
    as strings are re-used.  */
 
-#ifdef _MSC_VER
-#define __has_attribute(x) 0
-#endif
-
-#if (defined(__x86_64__) || (defined(__aarch64__) && __has_attribute(ms_abi))) && defined(__GNUC__) && defined(__WINE_USE_MSVCRT)
+#if (defined(__x86_64__) || (defined(__aarch64__) && 0)) && defined(__GNUC__) && defined(__WINE_USE_MSVCRT)
 # define __wine_dbg_cdecl __cdecl
 # define __wine_dbg_va_list __builtin_ms_va_list
 # define __wine_dbg_va_start(list,arg) __builtin_ms_va_start(list,arg)
@@ -521,22 +527,52 @@ static inline const char *debugstr_vt( VARTYPE vt ) { return wine_dbgstr_vt( vt 
 static inline const char *debugstr_variant( const VARIANT *v ) { return wine_dbgstr_variant( v ); }
 #endif
 
-#define TRACE                      WINE_TRACE
-#define TRACE_(ch)                 WINE_TRACE_(ch)
-#define TRACE_ON(ch)               WINE_TRACE_ON(ch)
+// #define TRACE       printf
+// #define TRACE_(ch)  printf
+// #define WARN        printf
+// #define WARN_(ch)   printf
+// #define FIXME       printf
+// #define FIXME_(ch)  printf
+// #define TRACE_ON(ch) true
+// #define WARN_ON(ch) true
+// #define FIXME_ON(ch) true
 
-#define WARN                       WINE_WARN
-#define WARN_(ch)                  WINE_WARN_(ch)
-#define WARN_ON(ch)                WINE_WARN_ON(ch)
+#define TRACE
+#define TRACE_(ch)
+#define TRACE_ON(ch) false
 
-#define FIXME                      WINE_FIXME
-#define FIXME_(ch)                 WINE_FIXME_(ch)
-#define FIXME_ON(ch)               WINE_FIXME_ON(ch)
 
-#undef ERR  /* Solaris got an 'ERR' define in <sys/reg.h> */
-#define ERR                        WINE_ERR
-#define ERR_(ch)                   WINE_ERR_(ch)
-#define ERR_ON(ch)                 WINE_ERR_ON(ch)
+#define WARN
+#define WARN_(ch)
+#define WARN_ON(ch) false
+
+#define FIXME
+#define FIXME_(ch)
+#define FIXME_ON(ch) false
+
+#define ERR
+#define ERR_(ch)
+#define ERR_ON(ch)  false
+
+
+
+
+//#define TRACE                      WINE_TRACE
+//define TRACE_(ch)                 WINE_TRACE_(ch)
+//#define TRACE_ON(ch)               WINE_TRACE_ON(ch)
+
+//#define WARN                       WINE_WARN
+//#define WARN_(ch)                  WINE_WARN_(ch)
+//#define WARN_ON(ch)                WINE_WARN_ON(ch)
+
+//#define FIXME                      WINE_FIXME
+//#define FIXME_(ch)                 WINE_FIXME_(ch)
+//#define FIXME_ON(ch)               WINE_FIXME_ON(ch)
+
+// #undef ERR  /* Solaris got an 'ERR' define in <sys/reg.h> */
+// #define ERR                        WINE_ERR
+// #define ERR_(ch)                   WINE_ERR_(ch)
+// #define ERR_ON(ch)                 WINE_ERR_ON(ch)
 
 #define MESSAGE                    WINE_MESSAGE
 
