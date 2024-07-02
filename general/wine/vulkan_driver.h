@@ -46,7 +46,12 @@ struct vulkan_funcs
     VkSurfaceKHR (*p_wine_get_native_surface)(VkSurfaceKHR);
 };
 
-extern const struct vulkan_funcs * CDECL __wine_get_vulkan_driver(UINT version);
+//extern const struct vulkan_funcs * CDECL __wine_get_vulkan_driver(UINT version);
+
+inline const struct vulkan_funcs * CDECL __wine_get_vulkan_driver(UINT version)
+{
+    return NULL;
+}
 
 static inline void *get_vulkan_driver_device_proc_addr(
         const struct vulkan_funcs *vulkan_funcs, const char *name)
