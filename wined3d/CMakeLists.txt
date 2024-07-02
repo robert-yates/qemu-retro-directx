@@ -32,6 +32,9 @@ add_library(${PROJECT_NAME} SHARED  src/adapter_gl.c
                                     src/wined3d_main.c
 
                                     src/wined3d.def
+
+                                    src/adapter_vk.c
+                                    src/context_vk.c
 )
 
 if (MSVC)
