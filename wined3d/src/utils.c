@@ -30,6 +30,8 @@
 
 #include "wined3d_private.h"
 
+#include "CompatibilityLib.h"
+
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 
 #define WINED3D_FORMAT_FOURCC_BASE (WINED3DFMT_BC7_UNORM_SRGB + 1)
@@ -5978,12 +5980,12 @@ BOOL wined3d_get_primary_adapter_luid(LUID *luid)
     if (!wined3d_get_primary_display(open_adapter_param.DeviceName))
         return FALSE;
 
-    if (D3DKMTOpenAdapterFromGdiDisplayName(&open_adapter_param))
+    if (D3DKMTOpenAdapterFromGdiDisplayName_compat(&open_adapter_param))
         return FALSE;
 
     *luid = open_adapter_param.AdapterLuid;
     close_adapter_param.hAdapter = open_adapter_param.hAdapter;
-    D3DKMTCloseAdapter(&close_adapter_param);
+    D3DKMTCloseAdapter_compat(&close_adapter_param);
     return TRUE;
 }
 

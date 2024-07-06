@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "wined3d_private.h"
+#include "CompatibilityLib.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 
@@ -443,7 +444,7 @@ static void swapchain_blit_gdi(struct wined3d_swapchain *swapchain,
     create_desc.hDeviceDc = CreateCompatibleDC(NULL);
     create_desc.pColorTable = NULL;
 
-    status = D3DKMTCreateDCFromMemory(&create_desc);
+    status = D3DKMTCreateDCFromMemory_compat(&create_desc);
     DeleteDC(create_desc.hDeviceDc);
     if (status)
     {
@@ -466,7 +467,7 @@ static void swapchain_blit_gdi(struct wined3d_swapchain *swapchain,
     ReleaseDC(swapchain->win_handle, dst_dc);
     destroy_desc.hDc = src_dc;
     destroy_desc.hBitmap = bitmap;
-    if ((status = D3DKMTDestroyDCFromMemory(&destroy_desc)))
+    if ((status = D3DKMTDestroyDCFromMemory_compat(&destroy_desc)))
         ERR("Failed to destroy src dc, status %#x.\n", status);
 }
 

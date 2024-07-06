@@ -26,6 +26,8 @@
 #include "wined3d_private.h"
 #include "winternl.h"
 
+#include "CompatibilityLib.h"
+
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 WINE_DECLARE_DEBUG_CHANNEL(winediag);
 
@@ -68,7 +70,7 @@ void CDECL wined3d_output_release_ownership(const struct wined3d_output *output)
     TRACE("output %p.\n", output);
 
     set_owner_desc.hDevice = output->kmt_device;
-    D3DKMTSetVidPnSourceOwner(&set_owner_desc);
+    D3DKMTSetVidPnSourceOwner_compat(&set_owner_desc);
 }
 
 HRESULT CDECL wined3d_output_take_ownership(const struct wined3d_output *output, BOOL exclusive)
@@ -84,7 +86,7 @@ HRESULT CDECL wined3d_output_take_ownership(const struct wined3d_output *output,
     set_owner_desc.pVidPnSourceId = &output->vidpn_source_id;
     set_owner_desc.VidPnSourceCount = 1;
     set_owner_desc.hDevice = output->kmt_device;
-    status = D3DKMTSetVidPnSourceOwner(&set_owner_desc);
+    status = D3DKMTSetVidPnSourceOwner_compat(&set_owner_desc);
 
     switch (status)
     {
@@ -110,9 +112,9 @@ static void wined3d_output_cleanup(const struct wined3d_output *output)
     TRACE("output %p.\n", output);
 
     destroy_device_desc.hDevice = output->kmt_device;
-    D3DKMTDestroyDevice(&destroy_device_desc);
+    D3DKMTDestroyDevice_compat(&destroy_device_desc);
     close_adapter_desc.hAdapter = output->kmt_adapter;
-    D3DKMTCloseAdapter(&close_adapter_desc);
+    D3DKMTCloseAdapter_compat(&close_adapter_desc);
 }
 
 static HRESULT wined3d_output_init(struct wined3d_output *output, unsigned int ordinal,
@@ -125,14 +127,14 @@ static HRESULT wined3d_output_init(struct wined3d_output *output, unsigned int o
     TRACE("output %p, device_name %s.\n", output, wine_dbgstr_w(device_name));
 
     lstrcpyW(open_adapter_desc.DeviceName, device_name);
-    if (D3DKMTOpenAdapterFromGdiDisplayName(&open_adapter_desc))
+    if (D3DKMTOpenAdapterFromGdiDisplayName_compat(&open_adapter_desc))
         return E_INVALIDARG;
 
     STRUCTURE_ACCESS_1_STABLE(create_device_desc, u1, hAdapter) = open_adapter_desc.hAdapter;
-    if (D3DKMTCreateDevice(&create_device_desc))
+    if (D3DKMTCreateDevice_compat(&create_device_desc))
     {
         close_adapter_desc.hAdapter = open_adapter_desc.hAdapter;
-        D3DKMTCloseAdapter(&close_adapter_desc);
+        D3DKMTCloseAdapter_compat(&close_adapter_desc);
         return E_FAIL;
     }
 

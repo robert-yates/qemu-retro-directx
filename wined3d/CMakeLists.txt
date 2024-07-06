@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(wined3d C)
 
-add_library(${PROJECT_NAME} SHARED  src/adapter_gl.c
+set(MODE SHARED)
+add_library(${PROJECT_NAME} ${MODE}  src/adapter_gl.c
                                     src/arb_program_shader.c
                                     src/ati_fragment_shader.c
                                     src/buffer.c
@@ -48,4 +49,6 @@ endif ()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../general)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../general/wine)
-target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 user32 gdi32 advapi32)
+target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 user32 gdi32 advapi32 CompatibilityLib)
+
+
