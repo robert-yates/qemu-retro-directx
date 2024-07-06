@@ -857,13 +857,29 @@ void wined3d_swapchain_state_cleanup(struct wined3d_swapchain_state *state)
     wined3d_swapchain_state_unregister(state);
 }
 
+
+void CreateConsole() {
+    HMODULE hKernel32 = LoadLibraryA("Kernel32.dll");
+    FARPROC pAllocConsole = GetProcAddress(hKernel32, "AllocConsole");
+    typedef BOOL (WINAPI *AllocConsoleFunc)(void);
+    AllocConsoleFunc allocConsole = (AllocConsoleFunc)pAllocConsole;
+    if (allocConsole()) {
+        printf("Console allocated successfully.\n");
+    } else {
+        fprintf(stderr, "Error: AllocConsole failed\n");
+    }
+}
+
 /* At process attach */
 BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
 {
     switch (reason)
     {
         case DLL_PROCESS_ATTACH:
+        {
+            // CreateConsole();
             return wined3d_dll_init(inst);
+        }
 
         case DLL_PROCESS_DETACH:
             if (!reserved)
