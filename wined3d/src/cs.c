@@ -18,6 +18,7 @@
 
 #include "wined3d_private.h"
 #include "wined3d_gl.h"
+#include "CompatibilityLib.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 WINE_DECLARE_DEBUG_CHANNEL(d3d_perf);
@@ -3392,7 +3393,7 @@ static void wined3d_cs_wait_event(struct wined3d_cs *cs)
     if (pNtWaitForAlertByThreadId)
         pNtWaitForAlertByThreadId(NULL, timeout);
     else
-        NtWaitForSingleObject(cs->event, FALSE, timeout);
+        NtWaitForSingleObject_compat(cs->event, FALSE, timeout);
 }
 
 static void wined3d_cs_command_lock(const struct wined3d_cs *cs)

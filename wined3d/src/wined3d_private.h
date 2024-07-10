@@ -26,7 +26,6 @@
 #define __WINE_WINED3D_PRIVATE_H
 
 #include "config.h"
-
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -3737,12 +3736,13 @@ static inline void wined3d_resource_reference(struct wined3d_resource *resource)
 
 #define WINED3D_PAUSE_SPIN_COUNT 200u
 
+extern void NtDelayExecution_compat(BOOL Alertable, LARGE_INTEGER *DelayInterval);
 static inline void wined3d_pause(unsigned int *spin_count)
 {
     static const LARGE_INTEGER timeout = {.QuadPart = WINED3D_CS_CLIENT_WAIT_TIMEOUT * -10};
 
     if (++*spin_count >= WINED3D_PAUSE_SPIN_COUNT)
-        NtDelayExecution(FALSE, &timeout);
+        NtDelayExecution_compat(FALSE, &timeout);
 }
 
 static inline BOOL wined3d_ge_wrap(ULONG x, ULONG y)
