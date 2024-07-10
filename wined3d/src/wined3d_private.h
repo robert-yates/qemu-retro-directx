@@ -35,7 +35,7 @@
 #include <limits.h>
 #include <float.h>
 #define LIBVKD3D_SHADER_SOURCE
-// #include <vkd3d_shader.h>
+#include <vkd3d_shader.h>
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
 #define COBJMACROS
