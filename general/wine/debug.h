@@ -108,6 +108,19 @@ struct __wine_debug_channel
 #define WINE_FIXME_(ch) WINE_FIXME
 #endif
 
+#if defined(__WINESRC__) && !defined(WINE_UNIX_LIB)
+/* Wine uses .spec file for PE exports */
+# define DECLSPEC_EXPORT
+#elif defined(_MSC_VER)
+# define DECLSPEC_EXPORT __declspec(dllexport)
+#elif defined(__MINGW32__)
+# define DECLSPEC_EXPORT __attribute__((dllexport))
+#elif defined(__GNUC__) && ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))) && !defined(__sun)
+# define DECLSPEC_EXPORT __attribute__((visibility ("default")))
+#else
+# define DECLSPEC_EXPORT
+#endif
+
 NTSYSAPI int WINAPI __wine_dbg_write( const char *str, unsigned int len );
 extern DECLSPEC_EXPORT unsigned char __cdecl __wine_dbg_get_channel_flags( struct __wine_debug_channel *channel );
 extern DECLSPEC_EXPORT const char * __cdecl __wine_dbg_strdup( const char *str );
@@ -123,7 +136,7 @@ extern DECLSPEC_EXPORT int __cdecl __wine_dbg_header( enum __wine_debug_class cl
    quotes.  The string will be valid for some time, but not indefinitely
    as strings are re-used.  */
 
-#if (defined(__x86_64__) || (defined(__aarch64__) && __has_attribute(ms_abi))) && defined(__GNUC__) && defined(__WINE_USE_MSVCRT)
+#if (defined(__x86_64__) || (defined(__aarch64__) && 0)) && defined(__GNUC__) && defined(__WINE_USE_MSVCRT)
 # define __wine_dbg_cdecl __cdecl
 #else
 # define __wine_dbg_cdecl
