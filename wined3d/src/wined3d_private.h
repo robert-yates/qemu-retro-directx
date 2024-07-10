@@ -4085,14 +4085,10 @@ struct wined3d_shader_limits
 static inline void wined3d_lock_init_(CRITICAL_SECTION *lock, const char *name)
 {
     InitializeCriticalSectionEx(lock, 0, RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
-    if (lock->DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
-        lock->DebugInfo->Spare[0] = (DWORD_PTR)name;
 }
 
 static inline void wined3d_lock_cleanup(CRITICAL_SECTION *lock)
 {
-    if (lock->DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
-        lock->DebugInfo->Spare[0] = 0;
     DeleteCriticalSection(lock);
 }
 
