@@ -26,6 +26,8 @@
 #include "winternl.h"
 #include "wine/list.h"
 
+#include "CompatibilityLib.h"
+
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 WINE_DECLARE_DEBUG_CHANNEL(winediag);
 
@@ -81,7 +83,7 @@ void CDECL wined3d_output_release_ownership(const struct wined3d_output *output)
     TRACE("output %p.\n", output);
 
     set_owner_desc.hDevice = output->kmt_device;
-    D3DKMTSetVidPnSourceOwner(&set_owner_desc);
+    D3DKMTSetVidPnSourceOwner_compat(&set_owner_desc);
 }
 
 HRESULT CDECL wined3d_output_take_ownership(const struct wined3d_output *output, BOOL exclusive)
@@ -97,12 +99,12 @@ HRESULT CDECL wined3d_output_take_ownership(const struct wined3d_output *output,
     set_owner_desc.pVidPnSourceId = &output->vidpn_source_id;
     set_owner_desc.VidPnSourceCount = 1;
     set_owner_desc.hDevice = output->kmt_device;
-    status = D3DKMTSetVidPnSourceOwner(&set_owner_desc);
+    status = D3DKMTSetVidPnSourceOwner_compat(&set_owner_desc);
 
     switch (status)
     {
         case STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE:
-            return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+            return 0x887A0022L; // DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
         case STATUS_INVALID_PARAMETER:
             return E_INVALIDARG;
         case STATUS_PROCEDURE_NOT_FOUND:
@@ -122,7 +124,7 @@ static void wined3d_output_cleanup(const struct wined3d_output *output)
     TRACE("output %p.\n", output);
 
     destroy_device_desc.hDevice = output->kmt_device;
-    D3DKMTDestroyDevice(&destroy_device_desc);
+    D3DKMTDestroyDevice_compat(&destroy_device_desc);
 }
 
 static HRESULT wined3d_output_init(struct wined3d_output *output, unsigned int ordinal,
@@ -135,13 +137,13 @@ static HRESULT wined3d_output_init(struct wined3d_output *output, unsigned int o
     TRACE("output %p, device_name %s.\n", output, wine_dbgstr_w(device_name));
 
     lstrcpyW(open_adapter_desc.DeviceName, device_name);
-    if (D3DKMTOpenAdapterFromGdiDisplayName(&open_adapter_desc))
+    if (D3DKMTOpenAdapterFromGdiDisplayName_compat(&open_adapter_desc))
         return E_INVALIDARG;
     close_adapter_desc.hAdapter = open_adapter_desc.hAdapter;
-    D3DKMTCloseAdapter(&close_adapter_desc);
+    D3DKMTCloseAdapter_compat(&close_adapter_desc);
 
     STRUCTURE_ACCESS_1_STABLE(create_device_desc, u1, hAdapter) = adapter->kmt_adapter;
-    if (D3DKMTCreateDevice(&create_device_desc))
+    if (D3DKMTCreateDevice_compat(&create_device_desc))
         return E_FAIL;
 
     output->ordinal = ordinal;
@@ -164,11 +166,15 @@ UINT64 adapter_adjust_memory(struct wined3d_adapter *adapter, INT64 amount)
     return adapter->vram_bytes_used;
 }
 
+LONG InterlockedExchangeAddSizeT_compat(LONG* addend, LONG value) {
+    return InterlockedExchangeAdd(addend, value);
+}
+
 unsigned int adapter_adjust_mapped_memory(struct wined3d_adapter *adapter, unsigned int size)
 {
     /* Note that this needs to be thread-safe; the Vulkan adapter may map from
      * client threads. */
-    unsigned int ret = InterlockedExchangeAddSizeT(&adapter->mapped_size, size) + size;
+    unsigned int ret = InterlockedExchangeAddSizeT_compat(&adapter->mapped_size, size) + size;
     TRACE("Adjusted mapped adapter memory by %Id to %Id.\n", size, ret);
     return ret;
 }
@@ -183,7 +189,7 @@ void wined3d_adapter_cleanup(struct wined3d_adapter *adapter)
     free(adapter->outputs);
     free(adapter->formats);
     close_adapter_desc.hAdapter = adapter->kmt_adapter;
-    D3DKMTCloseAdapter(&close_adapter_desc);
+    D3DKMTCloseAdapter_compat(&close_adapter_desc);
 }
 
 ULONG CDECL wined3d_incref(struct wined3d *wined3d)
@@ -1040,7 +1046,7 @@ HRESULT CDECL wined3d_adapter_get_video_memory_info(const struct wined3d_adapter
     query_memory_info.hAdapter = adapter->kmt_adapter;
     query_memory_info.PhysicalAdapterIndex = node_idx;
     query_memory_info.MemorySegmentGroup = (D3DKMT_MEMORY_SEGMENT_GROUP)group;
-    status = D3DKMTQueryVideoMemoryInfo(&query_memory_info);
+    status = -1; // D3DKMTQueryVideoMemoryInfo(&query_memory_info);
     if (status == STATUS_SUCCESS)
     {
         info->budget = query_memory_info.Budget;
@@ -1083,7 +1089,7 @@ static DWORD CALLBACK notification_thread_func(void *stop_event)
     struct wined3d_video_memory_info info;
     HRESULT hr;
 
-    SetThreadDescription(GetCurrentThread(), L"wined3d_budget_change_notification");
+    // SetThreadDescription(GetCurrentThread(), L"wined3d_budget_change_notification");
 
     while (TRUE)
     {
@@ -3439,7 +3445,7 @@ BOOL wined3d_adapter_init(struct wined3d_adapter *adapter, unsigned int ordinal,
     TRACE("adapter %p LUID %08lx:%08lx.\n", adapter, adapter->luid.HighPart, adapter->luid.LowPart);
 
     open_adapter_desc.AdapterLuid = adapter->luid;
-    if (D3DKMTOpenAdapterFromLuid(&open_adapter_desc))
+    if (D3DKMTOpenAdapterFromLuid_compat(&open_adapter_desc))
         return FALSE;
     adapter->kmt_adapter = open_adapter_desc.hAdapter;
 
@@ -3481,7 +3487,7 @@ done:
             wined3d_output_cleanup(&adapter->outputs[output_idx]);
         free(adapter->outputs);
         close_adapter_desc.hAdapter = adapter->kmt_adapter;
-        D3DKMTCloseAdapter(&close_adapter_desc);
+        D3DKMTCloseAdapter_compat(&close_adapter_desc);
     }
     return ret;
 }
@@ -3490,9 +3496,6 @@ static struct wined3d_adapter *wined3d_adapter_create(unsigned int ordinal, DWOR
 {
     if (wined3d_creation_flags & WINED3D_NO3D)
         return wined3d_adapter_no3d_create(ordinal, wined3d_creation_flags);
-
-    if (wined3d_settings.renderer == WINED3D_RENDERER_VULKAN)
-        return wined3d_adapter_vk_create(ordinal, wined3d_creation_flags);
 
     return wined3d_adapter_gl_create(ordinal, wined3d_creation_flags);
 }

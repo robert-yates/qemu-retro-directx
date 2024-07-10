@@ -23,7 +23,7 @@
 #include "wined3d_private.h"
 #include "wined3d_gl.h"
 #include "wined3d_vk.h"
-
+#include "CompatibilityLib.h"
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 WINE_DECLARE_DEBUG_CHANNEL(d3d_perf);
 
@@ -434,7 +434,7 @@ static void swapchain_blit_gdi(struct wined3d_swapchain *swapchain,
     create_desc.hDeviceDc = CreateCompatibleDC(NULL);
     create_desc.pColorTable = NULL;
 
-    status = D3DKMTCreateDCFromMemory(&create_desc);
+    status = D3DKMTCreateDCFromMemory_compat(&create_desc);
     DeleteDC(create_desc.hDeviceDc);
     if (status)
     {
@@ -458,7 +458,7 @@ static void swapchain_blit_gdi(struct wined3d_swapchain *swapchain,
     ReleaseDC(swapchain->win_handle, dst_dc);
     destroy_desc.hDc = src_dc;
     destroy_desc.hBitmap = bitmap;
-    if ((status = D3DKMTDestroyDCFromMemory(&destroy_desc)))
+    if ((status = D3DKMTDestroyDCFromMemory_compat(&destroy_desc)))
         ERR("Failed to destroy src dc, status %#lx.\n", status);
 }
 
@@ -2213,7 +2213,7 @@ static void set_window_state(struct wined3d_window_state *s)
     }
     else if ((thread = CreateThread(NULL, 0, set_window_state_thread, s, 0, NULL)))
     {
-        SetThreadDescription(thread, L"wined3d_set_window_state");
+        // SetThreadDescription(thread, L"wined3d_set_window_state");
         CloseHandle(thread);
     }
     else

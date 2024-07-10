@@ -23,6 +23,8 @@
 #ifndef __WINE_D3D9_PRIVATE_H
 #define __WINE_D3D9_PRIVATE_H
 
+#include "config.h"
+
 #include <assert.h>
 #include <stdarg.h>
 

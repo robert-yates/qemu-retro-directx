@@ -3805,7 +3805,7 @@ static BOOL wined3d_adapter_init_gl_caps(struct wined3d_adapter_gl *adapter_gl,
     if (gl_info->supported[EXT_MEMORY_OBJECT])
     {
         GLint device_count = 0;
-
+/*
         gl_info->gl_ops.gl.p_glGetIntegerv(GL_NUM_DEVICE_UUIDS_EXT, &device_count);
         if (device_count > 0)
         {
@@ -3822,6 +3822,7 @@ static BOOL wined3d_adapter_init_gl_caps(struct wined3d_adapter_gl *adapter_gl,
         {
             WARN("Unexpected device count %d.\n", device_count);
         }
+        */
     }
 
     gl_ext_emul_mask = adapter->vertex_pipe->vp_get_emul_mask(adapter)

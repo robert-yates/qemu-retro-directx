@@ -184,7 +184,7 @@ static int __cdecl fallback__wine_dbg_output( const char *str )
 
     if (!len) return 0;
     InterlockedExchange( (LONG *)&partial_line_tid, str[len - 1] != '\n' ? GetCurrentThreadId() : 0 );
-    return fwrite( str, 1, len, stderr );
+    return 0; // fwrite( str, 1, len, stdout );
 }
 
 static int __cdecl fallback__wine_dbg_header( enum __wine_debug_class cls,
@@ -209,7 +209,7 @@ static int __cdecl fallback__wine_dbg_header( enum __wine_debug_class cls,
         snprintf( pos, sizeof(buffer) - (pos - buffer), "%s:%s:%s ",
                   debug_classes[cls], channel->name, function );
 
-    return fwrite( buffer, 1, strlen(buffer), stderr );
+    return 0; // fwrite( buffer, 1, strlen(buffer), stdout );
 }
 
 static unsigned char __cdecl fallback__wine_dbg_get_channel_flags( struct __wine_debug_channel *channel )

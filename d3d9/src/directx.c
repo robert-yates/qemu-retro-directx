@@ -680,7 +680,7 @@ static const struct IDirect3D9ExVtbl d3d9_vtbl =
     d3d9_EnumAdapterModesEx,
     d3d9_GetAdapterDisplayModeEx,
     d3d9_CreateDeviceEx,
-    d3d9_GetAdapterLUID,
+    // d3d9_GetAdapterLUID,
 };
 
 BOOL d3d9_init(struct d3d9 *d3d9, BOOL extended)

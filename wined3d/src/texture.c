@@ -23,6 +23,7 @@
 #include "wined3d_private.h"
 #include "wined3d_gl.h"
 #include "wined3d_vk.h"
+#include "CompatibilityLib.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 WINE_DECLARE_DEBUG_CHANNEL(d3d_perf);
@@ -1198,7 +1199,7 @@ static void wined3d_texture_create_dc(void *object)
     desc.hDeviceDc = CreateCompatibleDC(NULL);
     desc.pColorTable = NULL;
 
-    status = D3DKMTCreateDCFromMemory(&desc);
+    status = D3DKMTCreateDCFromMemory_compat(&desc);
     DeleteDC(desc.hDeviceDc);
     if (status)
     {
@@ -1243,7 +1244,7 @@ static void wined3d_texture_destroy_dc(void *object)
 
     destroy_desc.hDc = dc_info->dc;
     destroy_desc.hBitmap = dc_info->bitmap;
-    if ((status = D3DKMTDestroyDCFromMemory(&destroy_desc)))
+    if ((status = D3DKMTDestroyDCFromMemory_compat(&destroy_desc)))
         ERR("Failed to destroy dc, status %#lx.\n", status);
     dc_info->dc = NULL;
     dc_info->bitmap = NULL;

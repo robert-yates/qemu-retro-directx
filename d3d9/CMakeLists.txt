@@ -14,6 +14,8 @@ add_library(${PROJECT_NAME} SHARED  src/buffer.c
                                     src/vertexdeclaration.c
                                     src/volume.c
                                     src/d3d9.def
+
+                                    ../../general/debug.c
 )
 
 if (MSVC)

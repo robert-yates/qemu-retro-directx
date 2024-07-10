@@ -80,4 +80,22 @@ typedef void (*PFN_vkd3d_log)(const char *format, va_list args);
 }
 #endif  /* __cplusplus */
 
+
+typedef int D3D_FEATURE_LEVEL;
+typedef int ID3D12Device;
+typedef int D3D_ROOT_SIGNATURE_VERSION;
+typedef int ID3DBlob;
+typedef int D3D12_RESOURCE_DESC;
+typedef int ID3D12Resource;
+typedef int ID3D12CommandQueue;
+typedef int D3D12_RESOURCE_STATES;
+typedef int D3D12_ROOT_SIGNATURE_DESC;
+typedef int D3D12_VERSIONED_ROOT_SIGNATURE_DESC;
+typedef int DXGI_FORMAT;
+typedef int D3D12_RESOURCE_STATES;
+typedef int D3D12_RESOURCE_STATES;
+typedef int D3D12_RESOURCE_STATES;
+typedef int D3D12_RESOURCE_STATES;
+
+
 #endif  /* __VKD3D_TYPES_H */

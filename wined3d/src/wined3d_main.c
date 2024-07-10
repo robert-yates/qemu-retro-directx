@@ -27,7 +27,7 @@
 #include "initguid.h"
 #include "wined3d_private.h"
 #include "wined3d_gl.h"
-#include "d3d12.h"
+// #include "d3d12.h"
 #define VK_NO_PROTOTYPES
 #include "wine/vulkan.h"
 #include <vkd3d.h>
@@ -115,7 +115,7 @@ CRITICAL_SECTION wined3d_command_cs = {&wined3d_command_cs_debug, -1, 0, 0, 0, 0
  * where appropriate. */
 struct wined3d_settings wined3d_settings =
 {
-    .cs_multithreaded = WINED3D_CSMT_ENABLE,
+    .cs_multithreaded = WINED3D_CSMT_SERIALIZE,
     .max_gl_version = MAKEDWORD_VERSION(4, 4),
     .pci_vendor_id = PCI_VENDOR_NONE,
     .pci_device_id = PCI_DEVICE_NONE,
@@ -127,8 +127,8 @@ struct wined3d_settings wined3d_settings =
     .max_sm_hs = UINT_MAX,
     .max_sm_gs = UINT_MAX,
     .max_sm_cs = UINT_MAX,
-    .renderer = WINED3D_RENDERER_AUTO,
-    .shader_backend = WINED3D_SHADER_BACKEND_AUTO,
+    .renderer = WINED3D_RENDERER_OPENGL,
+    .shader_backend = WINED3D_SHADER_BACKEND_GLSL,
 };
 
 enum wined3d_renderer CDECL wined3d_get_renderer(void)
@@ -463,6 +463,7 @@ static BOOL wined3d_dll_init(HINSTANCE hInstDLL)
             TRACE("Forcing all constant buffers to be write-mappable.\n");
             wined3d_settings.cb_access_map_w = TRUE;
         }
+        
     }
 
     if (appkey) RegCloseKey( appkey );
@@ -939,13 +940,28 @@ void wined3d_swapchain_state_cleanup(struct wined3d_swapchain_state *state)
     wined3d_swapchain_state_unregister(state);
 }
 
+void CreateConsole() {
+    HMODULE hKernel32 = LoadLibraryA("Kernel32.dll");
+    FARPROC pAllocConsole = GetProcAddress(hKernel32, "AllocConsole");
+    typedef BOOL (WINAPI *AllocConsoleFunc)(void);
+    AllocConsoleFunc allocConsole = (AllocConsoleFunc)pAllocConsole;
+    if (allocConsole()) {
+        printf("Console allocated successfully.\n");
+    } else {
+        fprintf(stderr, "Error: AllocConsole failed\n");
+    }
+}
+
 /* At process attach */
 BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
 {
     switch (reason)
     {
         case DLL_PROCESS_ATTACH:
+        {
+            CreateConsole();
             return wined3d_dll_init(inst);
+        }
 
         case DLL_PROCESS_DETACH:
             if (!reserved)
