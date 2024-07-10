@@ -31,6 +31,8 @@ add_library(${PROJECT_NAME} SHARED  src/adapter_gl.c
                                     src/wined3d_main.c
 
                                     src/wined3d.def
+                                    
+                                    ../../general/debug.c
 )
 
 if (MSVC)
@@ -44,4 +46,4 @@ endif ()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../general)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../general/wine)
-target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 user32 gdi32 advapi32)
+target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 user32 gdi32 advapi32 CompatibilityLib)

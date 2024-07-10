@@ -18,15 +18,18 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#define __WINE_PE_BUILD 1
 #ifdef __WINE_PE_BUILD
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "windef.h"
-#include "winbase.h"
-#include "wine/debug.h"
-#include "wine/heap.h"
+// #include "windef.h"
+// #include "winbase.h"
+// #include "wine/debug.h"
+// #include "wine/heap.h"
+#include "config.h"
+#include "debug.h"
 
 WINE_DECLARE_DEBUG_CHANNEL(pid);
 WINE_DECLARE_DEBUG_CHANNEL(timestamp);
@@ -59,6 +62,12 @@ static void load_func( void **func, const char *name, void *def )
 }
 #define LOAD_FUNC(name) load_func( (void **)&p ## name, #name, fallback ## name )
 
+static inline void * __WINE_ALLOC_SIZE(2) heap_realloc(void *mem, SIZE_T len)
+{
+    if (!mem)
+        return HeapAlloc(GetProcessHeap(), 0, len);
+    return HeapReAlloc(GetProcessHeap(), 0, mem, len);
+}
 
 /* add a new debug option at the end of the option list */
 static void add_option( const char *name, unsigned char set, unsigned char clear )
