@@ -25,6 +25,8 @@
 #ifndef __WINE_WINED3D_PRIVATE_H
 #define __WINE_WINED3D_PRIVATE_H
 
+#include "config.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -33,7 +35,7 @@
 #include <limits.h>
 #include <float.h>
 #define LIBVKD3D_SHADER_SOURCE
-#include <vkd3d_shader.h>
+// #include <vkd3d_shader.h>
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
 #define COBJMACROS
@@ -2600,7 +2602,7 @@ struct wined3d_adapter
     void *formats;
     size_t format_size;
 
-    ssize_t mapped_size;
+    unsigned int mapped_size;
 
     const struct wined3d_vertex_pipe_ops *vertex_pipe;
     const struct wined3d_fragment_pipe_ops *fragment_pipe;
@@ -2621,7 +2623,7 @@ struct wined3d_adapter *wined3d_adapter_gl_create(unsigned int ordinal,
         unsigned int wined3d_creation_flags);
 
 BOOL wined3d_adapter_no3d_init_format_info(struct wined3d_adapter *adapter);
-ssize_t adapter_adjust_mapped_memory(struct wined3d_adapter *adapter, ssize_t size);
+unsigned int adapter_adjust_mapped_memory(struct wined3d_adapter *adapter, unsigned int size);
 UINT64 adapter_adjust_memory(struct wined3d_adapter *adapter, INT64 amount);
 
 enum wined3d_projection_type
