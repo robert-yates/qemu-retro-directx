@@ -3243,8 +3243,10 @@ static void wined3d_cs_mt_submit(struct wined3d_device_context *context, enum wi
 {
     struct wined3d_cs *cs = wined3d_cs_from_context(context);
 
-    if (cs->thread_id == GetCurrentThreadId())
-        return wined3d_cs_st_submit(context, queue_id);
+    if (cs->thread_id == GetCurrentThreadId()) {
+        wined3d_cs_st_submit(context, queue_id);
+        return;
+    }
 
     wined3d_cs_queue_submit(&cs->queue[queue_id], cs);
 }
@@ -3326,8 +3328,10 @@ static void wined3d_cs_mt_finish(struct wined3d_device_context *context, enum wi
     struct wined3d_cs *cs = wined3d_cs_from_context(context);
     unsigned int spin_count = 0;
 
-    if (cs->thread_id == GetCurrentThreadId())
-        return wined3d_cs_st_finish(context, queue_id);
+    if (cs->thread_id == GetCurrentThreadId()) {
+        wined3d_cs_st_finish(context, queue_id);
+        return;
+    }
 
     TRACE_(d3d_perf)("Waiting for queue %u to be empty.\n", queue_id);
     while (cs->queue[queue_id].head != *(volatile ULONG *)&cs->queue[queue_id].tail)
